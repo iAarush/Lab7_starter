@@ -142,6 +142,8 @@ describe('Basic user flow for Website', () => {
      * Remember to remove the .skip from this it once you are finished writing this test.
      */
 
+    const cart = await page.evaluate(() => localStorage.getItem('cart'));
+    expect(cart).toBe('[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]');
   });
 
   // Checking to make sure that if you remove all of the items from the cart that the cart
@@ -155,6 +157,21 @@ describe('Basic user flow for Website', () => {
      * Once you have, check to make sure that #cart-count is now 0
      * Remember to remove the .skip from this it once you are finished writing this test.
      */
+
+    const prodItems = await page.$$('product-item');
+
+    for (let item of prodItems) {
+      const shadowRoot = await item.getProperty('shadowRoot');
+      const button = await shadowRoot.$('button');
+      const textHandle = await button.getProperty('innerText');
+      const text = await textHandle.jsonValue();
+      if (text === 'Remove from Cart') {
+        await button.click();
+      }
+    }
+
+    const cartCount = await page.$eval('#cart-count', el => el.innerText);
+    expect(cartCount).toBe('0');
 
   }, 10000);
 

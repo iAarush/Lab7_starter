@@ -55,6 +55,17 @@ describe('Basic user flow for Website', () => {
      * Remember to remove the .skip from this it once you are finished writing this test.
      */
 
+    const productItem = await page.$('product-item');
+    const shadowRoot = await productItem.getProperty('shadowRoot');
+    const button = await shadowRoot.$('button');
+
+    await button.click();
+
+    const innerText = await button.getProperty('innerText');
+    const textValue = await innerText.jsonValue();
+
+    expect(textValue).toBe('Remove from Cart');
+
   }, 2500);
 
   // Check to make sure that after clicking "Add to Cart" on every <product-item> that the Cart
@@ -70,6 +81,21 @@ describe('Basic user flow for Website', () => {
      * Remember to remove the .skip from this it once you are finished writing this test.
      */
 
+    const prodItems = await page.$$('product-item');
+
+    for (let item of prodItems) {
+      const shadowRoot = await item.getProperty('shadowRoot');
+      const button = await shadowRoot.$('button');
+      const textHandle = await button.getProperty('innerText');
+      const text = await textHandle.jsonValue();
+      if (text === 'Add to Cart') {
+        await button.click();
+      }
+    }
+
+    const cartCount = await page.$eval('#cart-count', el => el.innerText);
+    expect(cartCount).toBe('20');
+
   }, 10000);
 
   // Check to make sure that after you reload the page it remembers all of the items in your cart
@@ -83,6 +109,26 @@ describe('Basic user flow for Website', () => {
      * Also check to make sure that #cart-count is still 20
      * Remember to remove the .skip from this it once you are finished writing this test.
      */
+
+    await page.reload();
+
+    const prodItems = await page.$$('product-item');
+    let allCorrect = true;
+
+    for (let item of prodItems) {
+      const shadowRoot = await item.getProperty('shadowRoot');
+      const button = await shadowRoot.$('button');
+      const innerText = await button.getProperty('innerText');
+      const text = await innerText.jsonValue();
+      if (text !== 'Remove from Cart') {
+        allCorrect = false;
+        break;
+      }
+    }
+
+    const cartCount = await page.$eval('#cart-count', el => el.innerText);
+    expect(allCorrect).toBe(true);
+    expect(cartCount).toBe('20');
 
   }, 10000);
 

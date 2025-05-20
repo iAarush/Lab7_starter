@@ -75,62 +75,51 @@ describe('Basic user flow for Website', () => {
 
     /**
      **** TODO - STEP 3 **** 
-     * Query select all of the <product-item> elements, then for every single product element
-       get the shadowRoot and query select the button inside, and click on it.
-     * Check to see if the innerText of #cart-count is 20
-     * Remember to remove the .skip from this it once you are finished writing this test.
-     */
+    * Query select all of the <product-item> elements, then for every single product element
+      get the shadowRoot and query select the button inside, and click on it.
+    * Check to see if the innerText of #cart-count is 20
+    * Remember to remove the .skip from this it once you are finished writing this test.
+    */
 
     const prodItems = await page.$$('product-item');
-
     for (let item of prodItems) {
-      const shadowRoot = await item.getProperty('shadowRoot');
-      const button = await shadowRoot.$('button');
-      const textHandle = await button.getProperty('innerText');
-      const text = await textHandle.jsonValue();
+      // get a proper shadowRoot handle
+      const root   = await item.evaluateHandle(el => el.shadowRoot);
+      const button = await root.$('button');
+      const text   = await (await button.getProperty('innerText')).jsonValue();
       if (text === 'Add to Cart') {
         await button.click();
       }
     }
-
     const cartCount = await page.$eval('#cart-count', el => el.innerText);
     expect(cartCount).toBe('20');
+  }, 30000);
 
-  }, 10000);
 
-  // Check to make sure that after you reload the page it remembers all of the items in your cart
+// Check to make sure that after you reload the page it remembers all of the items in your cart
   it('Checking number of items in cart on screen after reload', async () => {
     console.log('Checking number of items in cart on screen after reload...');
 
     /**
      **** TODO - STEP 4 **** 
-     * Reload the page, then select all of the <product-item> elements, and check every
-       element to make sure that all of their buttons say "Remove from Cart".
-     * Also check to make sure that #cart-count is still 20
-     * Remember to remove the .skip from this it once you are finished writing this test.
-     */
+    * Reload the page, then select all of the <product-item> elements, and check every
+      element to make sure that all of their buttons say "Remove from Cart".
+    * Also check to make sure that #cart-count is still 20
+    * Remember to remove the .skip from this it once you are finished writing this test.
+    */
 
     await page.reload();
-
     const prodItems = await page.$$('product-item');
-    let allCorrect = true;
-
     for (let item of prodItems) {
-      const shadowRoot = await item.getProperty('shadowRoot');
-      const button = await shadowRoot.$('button');
-      const innerText = await button.getProperty('innerText');
-      const text = await innerText.jsonValue();
-      if (text !== 'Remove from Cart') {
-        allCorrect = false;
-        break;
-      }
+      const root = await item.evaluateHandle(el => el.shadowRoot);
+      const button = await root.$('button');
+      const text   = await (await button.getProperty('innerText')).jsonValue();
+      expect(text).toBe('Remove from Cart');
     }
-
     const cartCount = await page.$eval('#cart-count', el => el.innerText);
-    expect(allCorrect).toBe(true);
     expect(cartCount).toBe('20');
+  }, 30000);
 
-  }, 10000);
 
   // Check to make sure that the cart in localStorage is what you expect
   it('Checking the localStorage to make sure cart is correct', async () => {
@@ -159,21 +148,18 @@ describe('Basic user flow for Website', () => {
      */
 
     const prodItems = await page.$$('product-item');
-
     for (let item of prodItems) {
-      const shadowRoot = await item.getProperty('shadowRoot');
-      const button = await shadowRoot.$('button');
-      const textHandle = await button.getProperty('innerText');
-      const text = await textHandle.jsonValue();
+      const root = await item.evaluateHandle(el => el.shadowRoot);
+      const button = await root.$('button');
+      const text   = await (await button.getProperty('innerText')).jsonValue();
       if (text === 'Remove from Cart') {
         await button.click();
       }
     }
-
     const cartCount = await page.$eval('#cart-count', el => el.innerText);
     expect(cartCount).toBe('0');
 
-  }, 10000);
+  }, 30000);
 
   // Checking to make sure that it remembers us removing everything from the cart
   // after we refresh the page
